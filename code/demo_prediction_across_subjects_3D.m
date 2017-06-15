@@ -1,11 +1,10 @@
 function demo_prediction_across_subjects_3D
 
-% % Based on Makarchuk2016ECoGSignals/code
-% addpath(fullfile(pwd,'..', '..', '..', 'Group374', 'Makarchuk2016ECoGSignals', 'code'));
-addpath(fullfile(pwd, '..', '..', '..', '..', 'MATLAB', 'tensor_toolbox_2.6'));
+addpath(fullfile(pwd, '..', '..', 'tensor_toolbox_2.6'));  % your path to tensor toolbox
 addpath(fullfile(pwd, 'utils'));
 addpath(fullfile(pwd, 'qpfs'));
 addpath(fullfile(pwd, 'data_preparation'));
+addpath(fullfile(pwd, 'pls'));
 
 % time points of interest:
 TIME_STEP = 0.05;
@@ -37,14 +36,11 @@ experiments = {'20090602S1_FTT_K1_ZenasChao_csv_ECoG64-Motion7', ...
 % set parameters for 3D feature extraction:
 params.time_interval = 1.0;
 params.time_edge = 0.1;  % in seconds
-params.ntimebins = 10;  % !!! 20
+params.ntimebins = 10;  %
 params.ds_rate = 1;  % no downsampling
 params.alpha = 'none'; % no artifacts removal
 params.frscale = FRSCALE;
 params.sample_fr = 1/TIME_STEP;
-% params.frequency_bands = [0.5, 3.5, 0.5; 4, 8, 0.5; ...
-%                             9, 18, 3; 25, 50, 5; ...
-%                             100, 500, 100; ];
 params.frequency_bands = [10, 50, 10; 
                           60, 150, 10;];
 

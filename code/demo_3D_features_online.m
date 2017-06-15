@@ -1,8 +1,6 @@
 function demo_3D_features_online
 
-% % Based on Makarchuk2016ECoGSignals/code
-addpath(fullfile(pwd,'..', '..', '..', 'Group374', 'Makarchuk2016ECoGSignals', 'code'));
-addpath(fullfile(pwd, '..', '..', '..', '..', 'MATLAB', 'tensor_toolbox_2.6'));
+addpath(fullfile(pwd, '..', '..', 'tensor_toolbox_2.6'));  % your path to tensor toolbox
 addpath(fullfile(pwd, 'utils'));
 addpath(fullfile(pwd, 'qpfs'));
 addpath(fullfile(pwd, 'data_preparation'));
@@ -36,15 +34,12 @@ date1 = experiment_name(1:10);
 % set parameters for 3D feature extraction:
 params.time_interval = 1.0;
 params.time_edge = 0.1;  % in seconds
-params.ntimebins = 10;  % !!! 20
+params.ntimebins = 10;  
 params.ds_rate = 1;  % no downsampling
 params.alpha = 'none'; % no artifacts removal
 params.frscale = FRSCALE;
 params.sample_fr = 1/TIME_STEP;
- % !!! 
-% params.frequency_bands = [0.5, 3.5, 0.5; 4, 8, 0.5; ...
-%                             9, 18, 3; 25, 50, 5; ...
-%                             100, 500, 100; ];
+
 params.frequency_bands = [10, 50, 10; ...
                             60, 150, 10; ];
 
@@ -57,7 +52,7 @@ if VEL
 end
 params.features = FEATURES;
 
-t_obs = 650; % !!! 650
+t_obs = 650; 
 num_obs = sum(time_points <= t_obs);
 time_points_train = time_points(1:num_obs);
 time_points_test = time_points(1 + num_obs:end);
@@ -132,7 +127,6 @@ res_fname = ['saved data/QPFS_res', method, postfix, '.mat'];
 % err = recompute_errors(res_fname, X_train, Y_train, {X_hold_out, features2}, ...
 %                                                  {Y_hold_out, motion_dim2});
 
-% save(['saved data/QPFS_errors', method, postfix, '.mat'], 'err');
 save(res_fname, 'err', 'A', 'complexity', 'idx_selected', 'pars', 'pvals', 'qpfs', 'params');
                         
 % load(['saved data/QPFS_errors', method, postfix, '.mat']);
@@ -151,7 +145,7 @@ plot_cv_results_area2_nan({qp_mse_train, qp_mse}, ...
                        [folder, 'mse_QPFS_nfeats', method, postfix], ...
                        '-', 'none');                   
 % Compare matrix to tensor implementation
-compare_methods(featstr, methods, postfix, date1, date2, 'qpfs_tns_to_matrix/', ...
+compare_methods(featstr, methods, postfix, date1, date2, '', ...
                                         {'M', 'T'});
 %                                         {'$\tau = 0$', '$\tau=0.65$'});
                                         

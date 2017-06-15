@@ -1,11 +1,11 @@
 function demo_2D_features
 
-% % Based on Makarchuk2016ECoGSignals/code
-% addpath(fullfile(pwd,'..', '..', '..', 'Group374', 'Makarchuk2016ECoGSignals', 'code'));
-addpath(fullfile(pwd, '..', '..', '..', '..', 'MATLAB', 'tensor_toolbox_2.6'));
+
+addpath(fullfile(pwd, '..', '..', 'tensor_toolbox_2.6')); % your path to tensor toolbox
 addpath(fullfile(pwd, 'utils'));
 addpath(fullfile(pwd, 'qpfs'));
 addpath(fullfile(pwd, 'data_preparation'));
+addpath(fullfile(pwd, 'pls'));
 
 % time points of interest:
 TIME_STEP = 0.05;
