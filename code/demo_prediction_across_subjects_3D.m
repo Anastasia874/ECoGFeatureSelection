@@ -72,8 +72,8 @@ qpfs1.sim = TNS_SIMILARITY;
 qpfs0.sim = MAT_SIMILARITY;
 %--------------------------------------------------------------------------
 % Components for partial least squares for testing.
-ncomp_to_try = [10, 25, 50, 100, 200, 500];
-t_obs = 645; % ??
+ncomp_to_try = [10, 25, 50, 100];
+t_obs = 645; 
 N_FOLDS = 5;
 % cvp = tspartition(num_obs, N_FOLDS); 
 
@@ -130,16 +130,16 @@ for nb = 1:nbatches
         Y_train(2:end, :) = Y_train(2:end, :) - Y_train(1:end-1, :);
     end
     toc(tnb);
-%     % Tensor QPFS:
-%     qpfst = tic;
-%     [tns_err{nexp}{nb}, ~, ~, ~, ~, ~, ak, Qb] = QP_feature_selection(...
-%                                             X_train, Y_train, N_FOLDS, qpfs1, ...
-%                                              {X_hold_out}, {Y_hold_out}, ...
-%                                              ncomp_to_try);
-%     qpfs1.init = ak{end}; qpfs1.Qb = Qb;
-%     fprintf('Tensor QPFS: %i iterations done \n', length(ncomp_to_try));
-%     toc(qpfst); 
-%     % Matrix QPFS:
+    % Tensor QPFS:
+    qpfst = tic;
+    [tns_err{nexp}{nb}, ~, ~, ~, ~, ~, ak, Qb] = QP_feature_selection(...
+                                            X_train, Y_train, N_FOLDS, qpfs1, ...
+                                             {X_hold_out}, {Y_hold_out}, ...
+                                             ncomp_to_try);
+    qpfs1.init = ak{end}; qpfs1.Qb = Qb;
+    fprintf('Tensor QPFS: %i iterations done \n', length(ncomp_to_try));
+    toc(qpfst); 
+%     % Matrix QPFS: % too complex for 3D dataset
 %     qpfst = tic;
 %     [mat_err{nexp}{nb}, ~, ~, ~, ~, ~, ak, Qb] = QP_feature_selection(...
 %                                             X_train, Y_train, N_FOLDS, qpfs0, ...
@@ -164,8 +164,8 @@ for nb = 1:nbatches
                                             x_train, y_train, x_test, y_test, ...
                                             {X_hold_out}, ...
                                             {Y_hold_out}, 1);
-%         errors = crossval(mat_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
-%         mat_pls_err{nexp}{nb}(:, i) = arrayfun(@(c) {c}, errors);  
+        errors = crossval(mat_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
+        mat_pls_err{nexp}{nb}(:, i) = arrayfun(@(c) {c}, errors);  
         errors = crossval(tns_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
         tns_pls_err{nexp}{nb}(:, i) = arrayfun(@(c) {c}, errors);                                        
     end
@@ -173,14 +173,13 @@ for nb = 1:nbatches
     toc(fs_time);
 
 end
-save(res_fname, 'tns_err', 'mat_err', 'tns_pls_err', 'mat_pls_err', ...
-                                    'experiments', 'ncomp_to_try');
+
 end
 
 
-% res_fname = ['saved data/subjects_res_tns_qpfs', method, postfix, '.mat'];
-% save(res_fname, 'tns_err', 'mat_err', 'tns_pls_err', 'mat_pls_err', ...
-%                                     'experiments', 'ncomp_to_try');
+res_fname = ['saved data/subjects_res_tns_qpfs', method, postfix, '.mat'];
+save(res_fname, 'tns_err', 'mat_err', 'tns_pls_err', 'mat_pls_err', ...
+                                    'experiments', 'ncomp_to_try');
 
 
 end

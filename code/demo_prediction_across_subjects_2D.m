@@ -8,7 +8,7 @@ addpath(fullfile(pwd, 'pls'));
 
 % time points of interest:
 TIME_STEP = 0.05;
-time_points = 5:TIME_STEP:70;
+time_points = 5:TIME_STEP:950;
 step_str = strrep(num2str(TIME_STEP), '.', 'p');
 
 MARKER = 'wr'; % wrist, left for monkey A, right for monkey K
@@ -64,7 +64,6 @@ end
 params.features = FEATURES;
 params.vel = VEL;
 params.log = LOG_FLAG;
-params.modes = [32, 15]; % !!!!
 
 %--------------------------------------------------------------------------
 % Katrutsa's QP feature selection:
@@ -82,7 +81,7 @@ qpfs.Qb = {[], []};
 %--------------------------------------------------------------------------
 % PLS and train-test parameters
 ncomp_to_try = [10, 25, 50, 100, 200, 500];
-t_obs = 45; % ??
+t_obs = 645; 
 N_FOLDS = 5;
 num_obs = sum(time_points <= t_obs);
 % cvp = tspartition(num_obs, N_FOLDS); 
