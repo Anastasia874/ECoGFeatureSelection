@@ -8,7 +8,7 @@ addpath(fullfile(pwd, 'pls'));
 
 % time points of interest:
 TIME_STEP = 0.05;
-time_points = 5:TIME_STEP:950;
+time_points = 5:TIME_STEP:70;
 step_str = strrep(num2str(TIME_STEP), '.', 'p');
 
 MARKER = 'wr'; % wrist, left for monkey A, right for monkey K
@@ -82,7 +82,7 @@ qpfs.Qb = {[], []};
 %--------------------------------------------------------------------------
 % PLS and train-test parameters
 ncomp_to_try = [10, 25, 50, 100, 200, 500];
-t_obs = 645; % ??
+t_obs = 45; % ??
 N_FOLDS = 5;
 num_obs = sum(time_points <= t_obs);
 % cvp = tspartition(num_obs, N_FOLDS); 
@@ -93,8 +93,6 @@ method = [featstr, '_', methods{TNS_FLAG + 1}];
 postfix = ['_', MARKER, strjoin(dims(DIM), ''), '_',  step_str, ...
             '_frscale_', num2str(FRSCALE), ...
             '_nfolds_', num2str(N_FOLDS)];
-res_fname = ['saved data/subjects_res', method, postfix, '.mat'];
-load(res_fname);
         
 for nexp = 1:numel(experiments)
     
@@ -135,27 +133,27 @@ fprintf('Tensor QPFS: %i iterations done', length(ncomp_to_try));
 toc(qpfst);                 
 %--------------------------------------------------------------------------
 % % PLS or other embedded feature selection
-% fs_time = tic;
-% tns_pls_err{nexp} = num2cell(zeros(N_FOLDS, length(ncomp_to_try)));
-% mat_pls_err{nexp} = num2cell(zeros(N_FOLDS, length(ncomp_to_try)));
-% for i = 1:length(ncomp_to_try)
-%     fprintf('Iteration = %d / %d (ncomp = %d) \n', i, length(ncomp_to_try), ...
-%         ncomp_to_try(i));
-%     mat_pls_fun = @(x_train, y_train, x_test, y_test)pls_fun_crossval(ncomp_to_try(i),...
-%                                         x_train, y_train, x_test, y_test, ...
-%                                         {X_hold_out}, ...
-%                                         {Y_hold_out}, 0);
-%     tns_pls_fun = @(x_train, y_train, x_test, y_test)pls_fun_crossval(ncomp_to_try(i),...
-%                                         x_train, y_train, x_test, y_test, ...
-%                                         {X_hold_out}, ...
-%                                         {Y_hold_out}, 1);
-%     errors = crossval(mat_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
-%     mat_pls_err{nexp}(:, i) = arrayfun(@(c) {c}, errors);  
-%     errors = crossval(tns_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
-%     tns_pls_err{nexp}(:, i) = arrayfun(@(c) {c}, errors);                                        
-% end
-% fprintf('PLS: %i iterations done', length(ncomp_to_try));
-% toc(fs_time);
+fs_time = tic;
+tns_pls_err{nexp} = num2cell(zeros(N_FOLDS, length(ncomp_to_try)));
+mat_pls_err{nexp} = num2cell(zeros(N_FOLDS, length(ncomp_to_try)));
+for i = 1:length(ncomp_to_try)
+    fprintf('Iteration = %d / %d (ncomp = %d) \n', i, length(ncomp_to_try), ...
+        ncomp_to_try(i));
+    mat_pls_fun = @(x_train, y_train, x_test, y_test)pls_fun_crossval(ncomp_to_try(i),...
+                                        x_train, y_train, x_test, y_test, ...
+                                        {X_hold_out}, ...
+                                        {Y_hold_out}, 0);
+    tns_pls_fun = @(x_train, y_train, x_test, y_test)pls_fun_crossval(ncomp_to_try(i),...
+                                        x_train, y_train, x_test, y_test, ...
+                                        {X_hold_out}, ...
+                                        {Y_hold_out}, 1);
+    errors = crossval(mat_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
+    mat_pls_err{nexp}(:, i) = arrayfun(@(c) {c}, errors);  
+    errors = crossval(tns_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
+    tns_pls_err{nexp}(:, i) = arrayfun(@(c) {c}, errors);                                        
+end
+fprintf('PLS: %i iterations done', length(ncomp_to_try));
+toc(fs_time);
 
 end
 
