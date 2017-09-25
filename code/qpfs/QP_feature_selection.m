@@ -3,8 +3,6 @@ function [err, x, complexity, idx_selected, pars, pvals, ak, Qb] = QP_feature_se
                                                 X_holdout, y_holdout,...
                                                 nfeats)
 
-addpath('C:\Program Files\Mosek\8\toolbox\r2014a');
-% String indications for way to compute similarities and relevances
 if nargin < 3
     ncv = 5;
 end
@@ -27,9 +25,7 @@ rank = params.rank;
 sim = params.sim;
 rel = params.rel;
 tns_flag = params.tns_flag;
-ntries = params.ntries;
-ff = params.ff;
-Qb = params.Qb;
+
 
 if ~tns_flag
    X = reshape(X, size(X, 1), []); 
@@ -62,22 +58,20 @@ for cv = 1:ncv
         y_train = y(~idx_cv, :); y_test = y(idx_cv, :, :);
     end
     
-    solved = 0;
-    ntry = 1; %!!
-    while ~solved && ntry <= ntries
-        [Q, b] = create_opt_problem(X_train, y_train, sim, rel, rank, tns_flag, [Qb, ff]);
-        fprintf('Solving optimization problem, ntry %i / %i \n', ntry, ntries);
-        topt = tic;
-        [x{cv}, solved, ak{cv}, msg] = solve_opt_problem(Q, b, params);     
-        toc(topt);
+    ntries = 5;
+    ntry = 1;
+    while ntry < ntries
+        try
+            [x{cv}, ak{cv}, Qb, solved, msg] = qpfs_create_and_solve(X_train, y_train, params);
+            if ~solved 
+                fprintf(['%i attempts to solve optimization problem with %s of rank',...
+                    ' %i failed (%s)\n'], ntries, sim, rank, msg);                
+                continue;
+            end
+        catch 
+        end
         ntry = ntry + 1;
-    end    
-    if ~solved 
-        fprintf(['%i attempts to solve optimization problem with %s of rank',...
-            ' %i failed (%s)\n'], ntries, sim, rank, msg);
-        continue;
     end
-    Qb = {Q, b};
     
     threshold = sort(x{cv}(:))';
     if ~isempty(nfeats)

@@ -108,6 +108,10 @@ else
     xt = 1:5:length(xx);
 end
 
+if ~isdir('../fig/batch_qpfs/')
+    mkdir('../fig/batch_qpfs/');
+end
+
 f = figure;
 colormap(f, gray);
 imagesc(reshape(avpvals, nfeats, []) < ALPHA);
@@ -117,7 +121,7 @@ xlabel('Complexity', 'FontSize', 18, 'FontName', 'Times', 'Interpreter','latex')
 ylabel('Features', 'FontSize', 18, 'FontName', 'Times', 'Interpreter','latex');
 set(gca, 'FontSize', 15, 'FontName', 'Times');
 title(['Batch ', num2str(nb)]);
-figname = ['..\fig\qpfs\', nameb, 'sign_features_complexity_xyz_alpha', alphastr];
+figname = ['..\fig\batch_qpfs\', nameb, 'sign_features_complexity_xyz_alpha', alphastr];
 savefig([figname, '.fig']);
 saveas(f, [figname, '.png'])
 close(f);
@@ -155,7 +159,7 @@ set(gca, 'FontSize', 15, 'FontName', 'Times');
 h.Parent.XScale = 'log';
 axis tight;
 title(['Batch ', num2str(nb)]);
-figname = ['..\fig\qpfs\', nameb,'complexity_threshold'];
+figname = ['..\fig\batch_qpfs\', nameb,'complexity_threshold'];
 savefig([figname, '.fig']);
 saveas(f, [figname, '.png'])
 close(f);
@@ -174,23 +178,23 @@ freqs_by_feat = reshape(freqs_by_feat, ntbins, nfreqs, nchan);
 
 % For each frequnecy plot how often each electrode was selected
 for t = 1:ntbins
-figname = ['..\fig\qpfs\', nameb,'templ_electrodes_allfr_max', '_t', num2str(t)];
+figname = ['..\fig\batch_qpfs\', nameb,'templ_electrodes_allfr_max', '_t', num2str(t)];
 fill_electrodes_template(max(squeeze(freqs_by_feat(t, :, :))), ['All frequencies (max), batch ', num2str(nb)], figname);
-figname = ['..\fig\qpfs\', nameb,'templ_electrodes_allfr_mean', '_t', num2str(t)];
+figname = ['..\fig\batch_qpfs\', nameb,'templ_electrodes_allfr_mean', '_t', num2str(t)];
 fill_electrodes_template(mean(squeeze(freqs_by_feat(t, :, :))), ['All frequencies (mean), batch ', num2str(nb)], figname);
 % Plot max  frequnecy for each electrode on channel template:
-figname = ['..\fig\qpfs\', nameb,'templ_electrodes_maxfr', '_t', num2str(t)];
+figname = ['..\fig\batch_qpfs\', nameb,'templ_electrodes_maxfr', '_t', num2str(t)];
 [~, idx] = max(squeeze(freqs_by_feat(t, :, :)));
 fill_electrodes_template(fr_range(idx), ['Max frequency, batch ', num2str(nb)], figname);
 end
 
 for fr = 1:length(fr_range)
-figname = ['..\fig\qpfs\', nameb,'templ_electrodes_allt_max', '_fr', num2str(fr_range(fr))];
+figname = ['..\fig\batch_qpfs\', nameb,'templ_electrodes_allt_max', '_fr', num2str(fr_range(fr))];
 fill_electrodes_template(max(squeeze(freqs_by_feat(:, fr, :))), ['All frequencies (max), batch ', num2str(nb)], figname);
-figname = ['..\fig\qpfs\', nameb,'templ_electrodes_allt_mean', '_fr', num2str(fr_range(fr))];
+figname = ['..\fig\batch_qpfs\', nameb,'templ_electrodes_allt_mean', '_fr', num2str(fr_range(fr))];
 fill_electrodes_template(mean(squeeze(freqs_by_feat(:, fr, :))), ['All frequencies (mean), batch ', num2str(nb)], figname);
 % Plot max  frequnecy for each electrode on channel template:
-figname = ['..\fig\qpfs\', nameb,'templ_electrodes_maxt', '_fr', num2str(fr_range(fr))];
+figname = ['..\fig\batch_qpfs\', nameb,'templ_electrodes_maxt', '_fr', num2str(fr_range(fr))];
 [~, idx] = max(squeeze(freqs_by_feat(:, fr, :)));
 fill_electrodes_template(fr_range(idx), ['Max frequency, batch ', num2str(nb)], figname);   
 end

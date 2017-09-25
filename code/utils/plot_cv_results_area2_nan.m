@@ -73,8 +73,12 @@ legend(lh, legend_text, 'location', 'best', 'fontname', 'Times', 'fontsize', 12,
 hold off;
 
 
-
 if ~isempty(name)
+    folder = fullfile('../fig/results/',fileparts(name));
+    if ~isdir(folder)
+        mkdir(folder);
+    end
+    
 savefig(['../fig/results/', name, '.fig']);
 saveas(f, ['../fig/results/', name, '.png'])
 close(f);

@@ -75,6 +75,11 @@ if length(nbs) > 1
         'fontname', 'Times', 'fontsize', 15);
 end
 axis tight;
+
+if ~isdir('../fig/batch_qpfs/')
+    mkdir('../fig/batch_qpfs/');
+end
+
 savefig(['../fig/batch_qpfs/', figname,'.fig']);
 saveas(f, ['../fig/batch_qpfs/', figname,'.png']);
 close(f);

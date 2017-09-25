@@ -18,6 +18,7 @@ MAT_SIMILARITY = 'correl'; % for matrices
 dims = {'x', 'y', 'z'};
 DIM = 1:3;
 TNS_FLAG = 1;
+LOG_FLAG = 0;
 VEL = 0;
 
 if TNS_FLAG
@@ -106,7 +107,7 @@ end
 toc(tnb);
 [err{nb}, ~, ~, idx_selected{nb}, pars{nb}, pvals{nb}, ak{nb}, Qb] = QP_feature_selection(...
                                         X_train, Y_train, N_FOLDS, qpfs, ...
-                                         {X_hold_out}, {Y_hold_out});
+                                         {X_hold_out}, {Y_hold_out}, 10);
 qpfs.init = ak{nb}{end};
 qpfs.Qb = Qb;
 
