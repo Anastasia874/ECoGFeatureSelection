@@ -19,7 +19,7 @@ TNS_SIMILARITY = 'Tucker'; % could be 'Tucker' or 'unfold' for tns,
 MAT_SIMILARITY = 'correl'; % for matrices
 dims = {'x', 'y', 'z'};
 DIM = 1:3;
-TNS_FLAG = 0;
+TNS_FLAG = 1;
 LOG_FLAG = 1;
 VEL = 0;
 
@@ -68,7 +68,7 @@ toc
 %--------------------------------------------------------------------------
 % Components for partial least squares for testing.
 nfeats = size(reshape(features1, size(features1, 1), []), 2);
-ncomp_to_try = [1, 5, 10, 30, 50:50:(nfeats-1), nfeats];
+ncomp_to_try = [1, 5, 10, 30]; %, 50, 100:100:min([1000, nfeats])];
 t_obs = 645; % ??
 N_FOLDS = 5;
 num_obs = sum(time_points <= t_obs);
@@ -100,21 +100,52 @@ qpfs.ntries = 3;
 qpfs.init = [];
 qpfs.ff = 0.8; % forgetting factor for batch QPFS
 qpfs.Qb = {[], []};
-[err, ~, ~, idx_selected, pars, pvals, ak] = QP_feature_selection(...
-                                        X_train, Y_train, N_FOLDS, qpfs, ...
-                                                {X_hold_out}, ...
-                                                {Y_hold_out});
-                                            
-tns_method = [TNS_SIMILARITY, '_', num2str(qpfs.iters), '_', num2str(qpfs.Arank)];
-methods = {MAT_SIMILARITY, tns_method};
-method = [featstr, '_', methods{TNS_FLAG + 1}];
-res_fname = ['saved data/QPFS_res', method, postfix, '.mat'];
-% err = recompute_errors(res_fname, X_train, Y_train, {X_hold_out, features2}, ...
-%                                                  {Y_hold_out, motion_dim2});
+% [err, ~, ~, idx_selected, pars, pvals, ak] = QP_feature_selection(...
+%                                         X_train, Y_train, N_FOLDS, qpfs, ...
+%                                                 {X_hold_out}, ...
+%                                                 {Y_hold_out});
 
-save(res_fname, 'err', 'idx_selected', 'pars', 'pvals', 'ak', 'qpfs', 'params');
-                        
+% !!!!
+methods = {'mat_pls', 'tns_pls'};
+fs_time = tic;
+tns_pls_err = num2cell(zeros(N_FOLDS, nfeats));
+mat_pls_err = num2cell(zeros(N_FOLDS, nfeats));
+for i = 1:length(ncomp_to_try)
+    fprintf('Iteration = %d / %d (ncomp = %d) \n', i, length(ncomp_to_try), ...
+        ncomp_to_try(i));
+    mat_pls_fun = @(x_train, y_train, x_test, y_test)pls_fun_crossval(ncomp_to_try(i),...
+                                        x_train, y_train, x_test, y_test, ...
+                                        {X_hold_out}, ...
+                                        {Y_hold_out}, 0);
+    tns_pls_fun = @(x_train, y_train, x_test, y_test)pls_fun_crossval(ncomp_to_try(i),...
+                                        x_train, y_train, x_test, y_test, ...
+                                        {X_hold_out}, ...
+                                        {Y_hold_out}, 1);
+    errors = crossval(mat_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
+    mat_pls_err(:, ncomp_to_try(i)) = arrayfun(@(c) {c}, errors);  
+    errors = crossval(tns_pls_fun, X_train, Y_train, 'kfold', N_FOLDS);
+    tns_pls_err(:, ncomp_to_try(i)) = arrayfun(@(c) {c}, errors);                                        
+end
+fprintf('PLS: %i iterations done', length(ncomp_to_try));
+toc(fs_time);
+err = mat_pls_err;
+res_fname = {['saved data/QPFS_res_', methods{1}, postfix, '.mat']};
+save(res_fname{1}, 'err', 'params');
+err = tns_pls_err;
+res_fname{2} = ['saved data/QPFS_res_', methods{2}, postfix, '.mat'];
+save(res_fname{2}, 'err', 'params');
+
+% tns_method = [TNS_SIMILARITY, '_', num2str(qpfs.iters), '_', num2str(qpfs.Arank)];
+% methods = {MAT_SIMILARITY, tns_method};
+% method = [featstr, '_', methods{TNS_FLAG + 1}];
+% res_fname = ['saved data/QPFS_res', method, postfix, '.mat'];
+% save(res_fname, 'err', 'params');
+% % err = recompute_errors(res_fname, X_train, Y_train, {X_hold_out, features2}, ...
+% %                                                  {Y_hold_out, motion_dim2});
+       
+
 % load(['saved data/QPFS_errors', method, postfix, '.mat']);
+err = err(:, ismember(1:1024, ncomp_to_try));
 [qp_mse, qp_crr, ~, qp_mse_train, qp_crr_train, ~, qp_crr_ho] = read_errors(err);
 
 
@@ -122,18 +153,19 @@ plot_cv_results_area2_nan({qp_crr_train, qp_crr, qp_crr_ho{1}}, ...
                       1:nfeats, 'Correlation coef', 'Number of features', ...
                        {[date1, ' train (cv)'], [date1, ' test (cv)'], ...
                        [date1, ' holdout']}, ...
-                       [folder, 'corr_ho_QPFS_nfeats', method, postfix], ...
-                       '-', 'none');
+                       [folder, 'corr_ho_nfeats', methods{2}, postfix], ...
+                       {}, 'none');
 plot_cv_results_area2_nan({qp_mse_train, qp_mse}, ...
                       1:nfeats, 'Scaled MSE', 'Number of features', ...
                        {[date1, ' train (cv)'], [date1, ' test (cv)']}, ...
-                       [folder, 'mse_QPFS_nfeats', method, postfix], ...
-                       '-', 'none');                   
+                       [folder, 'mse_nfeats', methods{2}, postfix], ...
+                       {}, 'none');                   
 % Compare matrix to tensor implementation
-compare_methods(featstr, methods, postfix, date1, [], 'qpfs_tns_to_matrix/', ...
+compare_methods('', methods, postfix, date1, [], 'saved_data/', ...
                                         {'M', 'T'});                                     
                                         
-% Report results:
-qpfs_feature_analysis(['saved data/QPFS_res', method, postfix, '.mat'], method);
+% % Report results (for qpfs only):
+% qpfs_feature_analysis(res_fname{1}, methods{1});
+% qpfs_feature_analysis(res_fname{2}, methods{2});
 
 end

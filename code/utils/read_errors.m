@@ -2,6 +2,7 @@ function [mse, crr, dtwd, mse_train, crr_train, dtwd_train, crr_ho, ...
                                      made, made_train] = read_errors(err)
 
 MAX_HO = 2;
+
 try
     err = cell2mat(err);
 catch ME
@@ -11,6 +12,8 @@ catch ME
     end
     err = cell2mat(err);
 end
+
+
 mse = reshape([err().mse], size(err));    
 crr = reshape([err().crr], size(err)); 
 dtwd = reshape([err().dtwd], size(err)); 
