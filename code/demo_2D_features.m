@@ -68,7 +68,7 @@ toc
 %--------------------------------------------------------------------------
 % Components for partial least squares for testing.
 nfeats = size(reshape(features1, size(features1, 1), []), 2);
-ncomp_to_try = [1, 5, 10, 30]; %, 50, 100:100:min([1000, nfeats])];
+ncomp_to_try = [1, 5, 10, 30, 50, 100:100:min([1000, nfeats])];
 t_obs = 645; % ??
 N_FOLDS = 5;
 num_obs = sum(time_points <= t_obs);
