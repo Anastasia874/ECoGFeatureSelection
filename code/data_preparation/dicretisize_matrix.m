@@ -23,15 +23,6 @@ epoch_ends = ds_time(1):step_len:ds_time(end);
 n_epochs = length(epoch_ends);
 time = time(time > ds_time(1) - epoch_len & time <= ds_time(end));
 
-% % arrayfun and cellfun are slow, don't use them
-% bin_features = arrayfun( @(i) X(time >= epoch_starts(i) & ...
-%                                 time < epoch_starts(i) + epoch_len, :, :), ...
-%                                 1:n_epochs,...
-%                                 'UniformOutput', 0);
-% X = cellfun( @(x) discrete_matrix(x, ntimebins), bin_features, ...
-%                 'UniformOutput', 0);
-
-
 reshaped = cell(1, n_epochs);
 tic
 for i = 1:n_epochs

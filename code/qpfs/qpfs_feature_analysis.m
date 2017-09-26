@@ -1,6 +1,14 @@
 function qpfs_feature_analysis(res_fname, expname, nselected)
 % plots feature selection results.
-
+% Inputs:
+% res_fname - filename with saved results structure or results structure 
+%             itself. Relevant fields are: idx_selected, pvals, params, 
+%             A (or ak), params and qpfs. See QP_feature_selection for more
+%             information on these fields
+% expname - (optional) experiment name or other identifying prefix for fig 
+%           names generation
+% nselected - list with potential numbers of selected features. Used in
+%             significance plots
 
 if ischar(res_fname)
     % load [err, A, complexity, idx_selected, pars, pvals], returned by
@@ -54,6 +62,8 @@ n_targets = size(pvals{1}, 2);
 avpvals = zeros(nfeats, n_targets, nsel);
 NCVs = numel(pvals);
 complexity = zeros(nsel, NCVs);
+% For each feature (freqency-electrode pair) calc the avearge p-value of the
+% corresponding parameter in linear regression:
 for i = 1:NCVs
     freqs = freqs + idx_selected{i};
     nsel = repmat(~idx_selected{i}, 1, 1, n_targets);
@@ -62,7 +72,7 @@ for i = 1:NCVs
     complexity(:, i) = sum(idx_selected{i});
 end
 
-% plot 'significant' features by threshold, x-y-x in one plot:
+
 avpvals = permute(avpvals, [1,3, 2]);
 avpvals = avpvals / NCVs;
 
@@ -72,7 +82,7 @@ if length(xx) > 500
 else
     xt = 1:5:length(xx);
 end
-
+% plot 'significant' features by threshold, x-y-x in one plot:
 f = figure;
 colormap(f, gray);
 imagesc(reshape(avpvals, nfeats, []) < ALPHA);
@@ -81,6 +91,12 @@ set(gca, 'xticklabel', xx(xt));
 xlabel('Complexity', 'FontSize', 18, 'FontName', 'Times', 'Interpreter','latex');
 ylabel('Features', 'FontSize', 18, 'FontName', 'Times', 'Interpreter','latex');
 set(gca, 'FontSize', 15, 'FontName', 'Times');
+
+
+if ~isdir('..\fig\qpfs\')
+    mkdir('..\fig\qpfs\');
+end
+
 figname = ['..\fig\qpfs\', name,'sign_features_complexity_xyz_alpha', alphastr];
 savefig([figname, '.fig']);
 saveas(f, [figname, '.png'])
@@ -89,22 +105,7 @@ close(f);
 freqs = freqs / NCVs;
 freqs_by_feat = mean(freqs, 2);
 
-% figure;
-% imagesc(freqs); colorbar;
-% xlabel('Complexity', 'FontSize', 20, 'FontName', 'Times', 'Interpreter','latex');
-% ylabel('Features');
-% hold off;
-% set(gca, 'FontSize', 15, 'FontName', 'Times');
-% axis tight;
-
-% figure;
-% plot(mean(freqs, 2), 'k', 'linewidth', 2);
-% xlabel('Feature combinations $(i,j,k)$', 'FontSize', 20, 'FontName', 'Times', 'Interpreter','latex');
-% ylabel('Selection frequency');
-% hold off;
-% set(gca, 'FontSize', 15, 'FontName', 'Times');
-% axis tight;
-
+% Plot complexity-vs-trashold (reverse plot of structure variable A)
 f = figure; hold on
 for i = 1:NCVs
     if isfield(res_fname, 'A')
@@ -204,12 +205,6 @@ for d = dim
                                          idx_selected, ALPHA, c, figname, xfreqs);
     end
 end
-% idxlist = 1:nfeats;
-% [i, j, k] = ind2sub(size(A{1}), idxlist);
-% freqs_selections = zeros(legnth(electrodes), nfreqs);
-
-% err = cat(1, err{:});
-% [mse, crr] = read_errors(err);
 
 
 end

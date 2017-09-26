@@ -1,20 +1,32 @@
 function err = pls_fun_crossval( ncomp, x_train, y_train, x_test, y_test, ...
                                  x_holdout, y_holdout, tensor_flag, ...
-                                 regularization_struct)
+                                 regularization_struct, modes)
 if nargin < 8
     tensor_flag = 0;
 end
 
-if nargin < 9
+if nargin < 9 || isempty(regularization_struct)
     regularization_struct = {};
     regularization_struct.type = 'none';
+end
+
+if nargin < 10
+    modes = [];
 end
     
 % Function for crossvalidation.
 if tensor_flag
    % Since matlab's crossval reshapes x_train and x_test into 2way matrices,
    % reshape them back:
-   modes = size(x_holdout{1});
+   if isempty(modes) && ~isempty(x_holdout{1})
+       modes = size(x_holdout{1});
+   elseif isempty(modes)
+       modes = size(x_train);
+       fprintf('Tns PLS: reshaping X into %i feature modes \n', length(modes) - 1);
+   else
+       modes = [0, modes];
+   end
+   
    modes(1) = size(x_train, 1);
    x_train = tensor(reshape(x_train, modes));
    modes(1) = size(x_test, 1);

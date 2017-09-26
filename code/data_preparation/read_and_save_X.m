@@ -1,7 +1,7 @@
 function [X_set, D, time_points] = read_and_save_X(file_prefix, time_points, time_edge, ...
                          time_interval, ntimebins, ...
                          frequency_bands, file_out_X, ds_rate, alpha, ...
-                         tns_flag)
+                         tns_flag, edge_effects)
 
 % Read ECoG millivoltage data in .csv format, make a feature matrix and
 % save it .mat file
@@ -15,6 +15,13 @@ function [X_set, D, time_points] = read_and_save_X(file_prefix, time_points, tim
 % file_out_X - filename for saving; empty list is now saving is required
 % ds_rate - int, downsampling rate (reduces entries ds_rate times)
 % alpha - significance level for outlier filtering; 'none' for no filtering
+% tns_flag - specifies if we should return data in unfolded or multi-way
+%            format
+% edge_effects - if true, runs the "honest" scalogramm computation with edge
+%                effects (first split time series into overlappling
+%                segments, then calc scalograms and discretize them).
+%                Otherwise scalogram is computed for the whole time
+%                series, so that edge effects are removed only once.
 % Outputs:
 % D - data structure with additional information:
 %     D.order - cell array of string names for each dimension
@@ -39,7 +46,19 @@ if ~exist('tns_flag', 'var')
     tns_flag = 0;
 end
 
-% D stores a [time x freaqs x electrodes] scalogram 
+if ~exist('edge_effects', 'var')
+    edge_effects = 0;
+end
+
+if edge_effects
+    [X_set, D, time_points] = read_X_with_edge_effects(file_prefix, time_points, time_edge, ...
+                         time_interval, ntimebins, ...
+                         frequency_bands, ds_rate, alpha, ...
+                         tns_flag);
+    return
+end
+
+% D stores a [time x freqs x electrodes] scalogram 
 [~, D] = x_feature_extraction(file_prefix, time_points, time_interval, time_edge, ...
                             frequency_bands, [], ds_rate, alpha);
 time_points = time_points(time_points <= D.time(end));                       
@@ -59,5 +78,7 @@ end
 if ~tns_flag
     X_set = reshape(X_set, size(X_set, 1), []);
 end
+D.scalo = log(X_set);
+
 
 end

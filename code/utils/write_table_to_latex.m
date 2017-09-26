@@ -29,12 +29,12 @@ mat_err = res_struct.mat_err;
 tns_pls_err = res_struct.tns_pls_err;
 mat_pls_err = res_struct.mat_pls_err;
 
-% tnser = cell(8, 1); mplser = cell(8, 1); tnser1 = cell(8, 1); mplser1 = cell(8, 1);
+% tnser = cell(8, 1); mplser = cell(8, 1); tnsplser = cell(8, 1); mer = cell(8, 1);
 % for i = 1:8; 
 %     tnser{i} = tns_err{i, 1}{4}; mplser{i} = mat_pls_err{i, 1}{4}; 
-%     tnser1{i} = tns_err{i, 1}{3}; mplser1{i} = mat_pls_err{i, 1}{3}; 
+%     mer{i} = tns_err{i, 1}{3}; tnsplser{i} = tns_pls_err{i, 1}{4}; 
 % end;
-% res = {tnser1, tnser, mplser, mplser1};
+% res = {mer, tnser, mplser, tnsplser};
 
 res = {mat_err, tns_err, mat_pls_err, tns_pls_err};
 alg_names = {'QPFS', 'NQPFS', 'PLS', 'NPLS'};
@@ -59,11 +59,14 @@ tex_str = [tex_str, '\\hline\n'];
 % tex_str = [tex_str, 'Monkey, date  & Algorithm & \\multicolumn{', ...
 %             num2str(nfeats), '}{c|}{N. features / components} \\\\ \n'];
 tex_str = [tex_str, 'Monkey, date  & Algorithm & ', feats, '\\\\ \n'];
-tex_str = [tex_str, '\\hline\n'];
+all_vals = zeros(numel(res), nfeats); all_std = all_vals;
 for i = 1:numel(experiments)    
+    tex_str = [tex_str, '\\hline\n'];
     name = parse_exp_names(experiments{i});
     tex_str = [tex_str, '\\multirow{4}{*}{',  name,' }'];
     [meanvals, stdvals, idxbest] = read_all_errors(res, i, 'crr', idx_sel);
+    all_vals = all_vals + meanvals; 
+    all_std = all_std + stdvals;
     for j = 1:numel(res)
         vals_str(1, 1:nfeats) = arrayfun(@(x) num2str(x, 3), meanvals(j, :), 'UniformOutput', 0);
         vals_str(2, 1:nfeats) = arrayfun(@(x) num2str(x, '%0.3f'), stdvals(j, :), 'UniformOutput', 0);
@@ -80,11 +83,28 @@ for i = 1:numel(experiments)
         if j ~= numel(res)
             tex_str = [tex_str, '\\cline{2-', num2str(nfeats + 2),'} \n'];
         end
-    end
-    tex_str = [tex_str, '\\hline\n'];
+    end 
     tex_str = [tex_str, '\\hline\n'];
 end
 
+all_vals = all_vals/numel(experiments); 
+all_std = all_std/numel(experiments);  
+tex_str = [tex_str, '\\hline\n'];    
+tex_str = [tex_str, '\\multirow{4}{*}{ Average }'];    
+for j = 1:numel(res)
+        vals_str(1, 1:nfeats) = arrayfun(@(x) num2str(x, 3), all_vals(j, :), 'UniformOutput', 0);
+        vals_str(2, 1:nfeats) = arrayfun(@(x) num2str(x, '%0.3f'), all_std(j, :), 'UniformOutput', 0);       
+        vals = arrayfun(@(x) ['$', vals_str{1, x}, ' \\pm ', vals_str{2, x}, '$'],...
+                                                1:nfeats, 'UniformOutput', 0);
+    
+        vals = strjoin(vals, ' & ');
+        tex_str = [tex_str, ' & ', alg_names{j}, ' & '];
+        tex_str = [tex_str, vals, '\\\\ \n']; 
+        if j ~= numel(res)
+            tex_str = [tex_str, '\\cline{2-', num2str(nfeats + 2),'} \n'];
+        end
+    end 
+    tex_str = [tex_str, '\\hline\n'];    
 tex_str = [tex_str, '\\end{tabular} }\n'];
 tex_str = [tex_str, '\\end{table}\n'];
 tex_str = [tex_str,'\n\n'];  
@@ -110,7 +130,7 @@ for j = 1:numel(errs)
     if strcmp(metric, 'mse')
         vals = mse;
     else
-        vals = crr_ho{1};
+        vals = crr;%crr_ho{1};
     end
     idx = ~isnan(mean(vals));
     vals = vals(:, idx);
